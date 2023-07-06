@@ -5,6 +5,7 @@ import { useAppSelector, useAppDispatch } from '../../app/hooks';
 import { selectLogin } from '../login/loginSlice';
 import { Message, addMessage, selectLobby, setUserCount } from './lobbySlice';
 import { getSessionCount } from '../../api/api';
+import QRCode from 'react-qr-code';
 
 
 
@@ -109,9 +110,11 @@ const Lobby = () => {
     }
   }
 
+  const data = "http://192.168.0.15:3000/lobby/" + lobbyUUID;
   return (
     <div>
       <h1>Chat App</h1>
+      <QRCode value={data} style={{width: "5rem", height: "5rem"}} />
       <div>Users: {userCount}</div>
       <form
         onSubmit={(e) => {
