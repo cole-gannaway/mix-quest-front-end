@@ -14,11 +14,11 @@ export function SongCard(props: SongCardProps){
         </div>
         <div className="grid grid-cols-2">
             <button className="grid grid-cols-2" onClick={() => {dispatch(likeSong(props.song.uuid))}}>
-                <img src="/thumbs-up-line-icon.svg" style={{width:"100%"}}></img>
+                <img src="images/thumbs-up-line-icon.svg" style={{width:"100%"}}></img>
                 {props.song.likes}
             </button>
             <button className="grid grid-cols-2">
-                <img src="/thumbs-down-line-icon.svg" style={{width:"100%"}}></img>
+                <img src="images/thumbs-down-line-icon.svg" style={{width:"100%"}}></img>
                 {props.song.dislikes}
             </button>
         </div>

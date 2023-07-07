@@ -27,6 +27,8 @@ const Lobby = () => {
   const [messageInput, setMessageInput] = useState('');
   const [songURL, setSongURL] = useState('');
 
+  const hostname = window.location.hostname;
+
   const handleInputChange = (event : any) => {
     setMessageInput(event.target.value);
   };
@@ -60,8 +62,6 @@ const Lobby = () => {
     if (client === null) {
       console.log("creating client...")
       // create client
-      const url = "192.168.0.11"
-      
       const sockJsClient = new Client({
         connectionTimeout: 600000,
         connectHeaders : {
@@ -90,7 +90,7 @@ const Lobby = () => {
 
           // retrieve session count
           const retrieveSessionCount = async () => {
-            const count = await getSessionCount();
+            const count = await getSessionCount(hostname);
             if (count) dispatch(setUserCount(count));
           }
           retrieveSessionCount();
@@ -99,7 +99,7 @@ const Lobby = () => {
         onDisconnect: () => {
         },
         webSocketFactory: () => {
-          return new SockJS("http://" + url + ":8080/websocket");
+          return new SockJS("http://" + hostname + ":8080/websocket");
         }
       });
       sockJsClient.activate();
@@ -114,12 +114,13 @@ const Lobby = () => {
   }, [client, lobbyUUID, dispatch, username, disconnectUser]);
   
   
-  const data = "http://192.168.0.15:3000/lobby/" + lobbyUUID;
+  const qrCodeURL = hostname + ":3000/lobby/" + lobbyUUID;
   return (
     <div>
       <h1 className='text-3xl'>Chat App</h1>
+      <div>{hostname}</div>
       <div>
-        <QRCode value={data} className='mx-auto h-28' />
+        <QRCode value={qrCodeURL} className='mx-auto h-28' />
       </div>
       <div>Users: {userCount}</div>
       <div>
