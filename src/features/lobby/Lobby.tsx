@@ -114,7 +114,7 @@ const Lobby = () => {
   }, [client, lobbyUUID, dispatch, username, disconnectUser]);
   
   
-  const qrCodeURL = hostname + ":3000/lobby/" + lobbyUUID;
+  const qrCodeURL = "http://" + hostname + ":3000/lobby/" + lobbyUUID;
   return (
     <div>
       <h1 className='text-3xl'>Chat App</h1>
