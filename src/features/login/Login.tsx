@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useAppSelector, useAppDispatch } from '../../app/hooks';
 import { selectLogin, setLobbyUUID, setUsername } from './loginSlice';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -16,7 +16,7 @@ const Login = () => {
   useEffect(() => {
     const lobbyUUIDFromURL : string = from.split("/")[2];
     dispatch(setLobbyUUID(lobbyUUIDFromURL));
-  }, [from])
+  }, [from, dispatch])
 
   
 
@@ -35,13 +35,22 @@ const Login = () => {
       // when they get to the protected page and click the back button, they
       // won't end up back on the login page, which is also really nice for the
       // user experience.
-      navigate(from, { replace: true });
+      // navigate(from, { replace: true });
+      navigate("/lobby/" + lobbyUUID);
+
     });
   };
 
   return (
     <div>
-      <h2>Login</h2>
+      <div className='table mx-auto'>
+        <h2 className='text-3xl table-cell'>Mix Quest</h2>
+        <span className='table-cell align-middle text-red-500'><img src="images/dj-icon.png" alt="" className='h-6' /></span>
+      </div>
+      <div className='h-8'></div>
+      <h1 className="text-2xl text-black">
+          Login
+      </h1>
       <form onSubmit={handleLogin}>
         <div>
           <label htmlFor="username">Username:</label>
@@ -50,6 +59,7 @@ const Login = () => {
             id="username"
             value={username}
             onChange={(e) => dispatch(setUsername((e.target.value)))}
+            className="p-2 m-2 border border-black rounded border-radius-2"
           />
         </div>
         <div>
@@ -59,9 +69,10 @@ const Login = () => {
             id="lobbyId"
             value={lobbyUUID}
             onChange={(e) => dispatch(setLobbyUUID(e.target.value))}
+            className="p-2 m-2 border border-black rounded border-radius-2"
           />
         </div>
-        <button type="submit">Login</button>
+        <button type="submit" className='p-4 border border-black rounded border-radius-2'>Login</button>
       </form>
     </div>
   );
