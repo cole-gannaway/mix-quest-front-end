@@ -1,10 +1,10 @@
 
 interface SongPreviewProps {
-    url: string
+    embededUrl: string
 }
 export function SongPreview(props: SongPreviewProps){
     return <iframe 
-                src={(props.url)} 
+                src={(props.embededUrl)} 
                 className="mx-auto" 
                 style={{ width: "100%", height: 80 }} 
                 frameBorder="0"

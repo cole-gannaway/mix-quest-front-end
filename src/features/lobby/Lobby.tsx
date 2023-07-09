@@ -3,14 +3,17 @@ import SockJS from 'sockjs-client';
 import {Client} from '@stomp/stompjs';
 import { useAppSelector, useAppDispatch } from '../../app/hooks';
 import { selectLogin } from '../login/loginSlice';
-import { Song, addSong, convertURLToEmbeddedURL, createNewSong, selectLobby, setUserCount } from './lobbySlice';
+import { Song, addSong, convertURLToEmbeddedURL, createNewSong, createNewSongUUID, selectLobby, setUserCount } from './lobbySlice';
 import { getSessionCount } from '../../api/api';
 import QRCode from 'react-qr-code';
 import { SongCard } from './SongCard';
 import { SongPreview } from './SongPreview';
 
-
-
+interface SongRequestMessage {
+  username: string,
+  lobbyUUID: string,
+  songUUID: string,
+}
 
 const Lobby = () => {
   const dispatch = useAppDispatch();
@@ -28,20 +31,25 @@ const Lobby = () => {
 
   const hostname = window.location.hostname;
 
-  const sendSongSuggestion = () => {
-    if (songURL.trim() !== '') {
-      const message = {
-        songURL: songURL,
-        username: username,
-        timeMillis: Date.now()
-      };
-
-      if (client) {
-        client.publish({destination: "/app/songs/" + lobbyUUID, body: JSON.stringify(message)});
+  const handleSubmitSongRequest = () => {
+    const newSong = createNewSong(songURL);
+    if (newSong){
+      if (client?.connected) {
+        console.log("sending message");
+        const newSongRequestMessage : SongRequestMessage = {
+          username: username,
+          lobbyUUID: lobbyUUID,
+          songUUID: newSong.uuid
+        };
+        console.log(newSongRequestMessage)
+        client.publish({destination: "/app/songs/" + lobbyUUID, body: JSON.stringify(newSongRequestMessage)});
       }
-
+      else {
+        // TODO only in OfflineMode
+        dispatch(addSong(newSong))
+      }
       setSongURL('');
-    }
+    };
   };
 
 
@@ -70,9 +78,10 @@ const Lobby = () => {
         onConnect: () => {
 
           sockJsClient.subscribe('/topic/songs.' + lobbyUUID, (message) => {
-            // console.log('Received message:', message.body);
-            // const msg : Message = JSON.parse(message.body);
-            // dispatch(addMessage(msg));
+            console.log('Received message:', message.body);
+            const msg : SongRequestMessage = JSON.parse(message.body);
+            const newSong : Song=  createNewSongUUID(msg.songUUID);
+            dispatch(addSong(newSong));
           });
     
           // listen to new users
@@ -130,12 +139,9 @@ const Lobby = () => {
         <div></div>
         { embeddedUrlPreview ? 
             <div>
-              <SongPreview url={embeddedUrlPreview}></SongPreview>
+              <SongPreview embededUrl={embeddedUrlPreview}></SongPreview>
               <button 
-                onClick={() => {
-                  const newSong = createNewSong(songURL);
-                  if (newSong) dispatch(addSong(newSong));
-                }}
+                onClick={handleSubmitSongRequest}
                 className='p-2 bg-gray-300 rounded-xl'
               >Submit</button> 
             </div>

@@ -3,7 +3,7 @@ import { RootState } from '../../app/store';
 
 export interface Song {
   uuid: string;
-  url: string;
+  embededUrl: string;
   likes: number;
   dislikes: number;
 }
@@ -36,11 +36,16 @@ export function parseUUIDFromURL(url: string): string | null {
 export function convertURLToEmbeddedURL(url: string): string | null {
   const uuid = parseUUIDFromURL(url);
   if (uuid) {
-    const embededUrl = `https://open.spotify.com/embed/track/${uuid}?utm_source=generator`;
+    const embededUrl = createEmbeddedURL(uuid);
     return embededUrl;
   } else {
     return null;
   }
+}
+
+function createEmbeddedURL(uuid:string){
+  const embededUrl = "https://open.spotify.com/embed/track/" + uuid + "?utm_source=generator";
+  return embededUrl;
 }
 
 export function createNewSong(url: string){
@@ -49,13 +54,23 @@ export function createNewSong(url: string){
   if (uuid !== null && embededUrl !== null){
     const newSong : Song = {
       uuid: uuid,
-      url: embededUrl,
+      embededUrl: embededUrl,
       likes: 0,
       dislikes: 0
     }
     return newSong;
   }
   else return null;
+}
+
+export function createNewSongUUID(uuid: string){
+  const newSong : Song = {
+    uuid: uuid,
+    embededUrl: createEmbeddedURL(uuid),
+    likes: 0,
+    dislikes: 0
+  }
+  return newSong;
 }
 
 const songs : Song[] = [];

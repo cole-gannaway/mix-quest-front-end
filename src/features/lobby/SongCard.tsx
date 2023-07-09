@@ -10,7 +10,7 @@ export function SongCard(props: SongCardProps){
 
     return <div className="border border-black rounded-lg">
         <div>
-            <SongPreview url={props.song.url}></SongPreview>
+            <SongPreview embededUrl={props.song.embededUrl}></SongPreview>
         </div>
         <div className="grid grid-cols-2 text-center">
             <button className="relative h-16 w-16 m-auto" onClick={() => {dispatch(likeSong(props.song.uuid))}}>
