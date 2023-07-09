@@ -1,12 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
 
-export interface Message {
-    username: string;
-    content: string;
-    timeMillis: number;
-}
-
 export interface Song {
   uuid: string;
   url: string;
@@ -15,7 +9,6 @@ export interface Song {
 }
 
 export interface LobbyState {
-  messages: Message[];
   songs: Song[]
   userCount: number;
 }
@@ -29,29 +22,51 @@ const urls : string[] = [
   "https://open.spotify.com/track/4SZepBIPDRwPaHIjAKwRDb?si=59abc6814b714956"
 ]
 
-export function parseUUIDFromURL(url : string){
-  const uuid = url.split("https://open.spotify.com/track/")[1].split("?")[0];
-  return uuid;
+export function parseUUIDFromURL(url: string): string | null {
+  const uuid = url.split("https://open.spotify.com/track/")[1]?.split("?")[0];
+
+  const trackIdMatch = url.match("https:\/\/open\.spotify\.com\/track\/([^?]+)");
+  if (trackIdMatch && trackIdMatch[1]) {
+    return trackIdMatch[1];
+  } else {
+    return null;
+  }
 }
 
-export function convertURLToEmbeddedURL(url : string){
-  const embededUrl = "https://open.spotify.com/embed/track/" + parseUUIDFromURL(url) + "?utm_source=generator"
-  return embededUrl;
+export function convertURLToEmbeddedURL(url: string): string | null {
+  const uuid = parseUUIDFromURL(url);
+  if (uuid) {
+    const embededUrl = `https://open.spotify.com/embed/track/${uuid}?utm_source=generator`;
+    return embededUrl;
+  } else {
+    return null;
+  }
 }
 
 export function createNewSong(url: string){
-  const newSong : Song = {
-    uuid: parseUUIDFromURL(url),
-    url: convertURLToEmbeddedURL(url),
-    likes: 0,
-    dislikes: 0
+  const uuid = parseUUIDFromURL(url);
+  const embededUrl = convertURLToEmbeddedURL(url);
+  if (uuid !== null && embededUrl !== null){
+    const newSong : Song = {
+      uuid: uuid,
+      url: embededUrl,
+      likes: 0,
+      dislikes: 0
+    }
+    return newSong;
   }
-  return newSong;
+  else return null;
 }
 
+const songs : Song[] = [];
+urls.forEach((url) => {
+  const song = createNewSong(url);
+  if (song) songs.push(song);
+})
+console.log(songs);
+
 const initialState: LobbyState = {
-    messages: [],
-    songs: urls.map((url) => createNewSong(url)),
+    songs: songs,
     userCount: 1
 };
 
@@ -59,12 +74,6 @@ export const lobbySlice = createSlice({
   name: 'lobby',
   initialState,
   reducers: {
-    addMessage: (state, action: PayloadAction<Message>) => {
-        state.messages = state.messages.concat(action.payload);
-    },
-    deleteAllMessages: (state) => {
-        state.messages = []
-    },
     setUserCount: (state, action: PayloadAction<number>) => {
       state.userCount = action.payload;
     },
@@ -79,7 +88,7 @@ export const lobbySlice = createSlice({
   }
 });
 
-export const { addMessage, deleteAllMessages, setUserCount, addSong, likeSong } = lobbySlice.actions;
+export const { setUserCount, addSong, likeSong } = lobbySlice.actions;
 
 export const selectLobby = (state: RootState) => state.lobby;
 

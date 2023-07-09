@@ -1,4 +1,5 @@
 import { useAppDispatch } from "../../app/hooks";
+import { SongPreview } from "./SongPreview";
 import { Song, likeSong } from "./lobbySlice"
 
 interface SongCardProps {
@@ -9,8 +10,7 @@ export function SongCard(props: SongCardProps){
 
     return <div className="border border-black rounded-lg">
         <div>
-            <iframe src={(props.song.url)} className="mx-auto" style={{width:"100%", height:80}} frameBorder="0" allowFullScreen={true} allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="eager">
-            </iframe>
+            <SongPreview url={props.song.url}></SongPreview>
         </div>
         <div className="grid grid-cols-2 text-center">
             <button className="relative h-16 w-16 m-auto" onClick={() => {dispatch(likeSong(props.song.uuid))}}>

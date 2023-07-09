@@ -3,10 +3,11 @@ import SockJS from 'sockjs-client';
 import {Client} from '@stomp/stompjs';
 import { useAppSelector, useAppDispatch } from '../../app/hooks';
 import { selectLogin } from '../login/loginSlice';
-import { Message, addMessage, addSong, createNewSong, selectLobby, setUserCount } from './lobbySlice';
+import { Song, addSong, convertURLToEmbeddedURL, createNewSong, selectLobby, setUserCount } from './lobbySlice';
 import { getSessionCount } from '../../api/api';
 import QRCode from 'react-qr-code';
 import { SongCard } from './SongCard';
+import { SongPreview } from './SongPreview';
 
 
 
@@ -18,35 +19,28 @@ const Lobby = () => {
   const lobbyUUID = login.lobbyUUID;
 
   const lobby = useAppSelector(selectLobby);
-  const messages = lobby.messages;
   const userCount = lobby.userCount;
   const songs = lobby.songs;
   const sortedSongs = [...songs].sort((a,b) => b.likes - a.likes);
 
   const [client, setClient] = useState<Client | null>(null);
-  const [messageInput, setMessageInput] = useState('');
   const [songURL, setSongURL] = useState('');
 
   const hostname = window.location.hostname;
 
-  const handleInputChange = (event : any) => {
-    setMessageInput(event.target.value);
-  };
-
-
-  const sendMessage = () => {
-    if (messageInput.trim() !== '') {
-      const message : Message = {
-        content: messageInput,
+  const sendSongSuggestion = () => {
+    if (songURL.trim() !== '') {
+      const message = {
+        songURL: songURL,
         username: username,
         timeMillis: Date.now()
       };
 
       if (client) {
-        client.publish({destination: "/app/messages/" + lobbyUUID, body: JSON.stringify(message)});
+        client.publish({destination: "/app/songs/" + lobbyUUID, body: JSON.stringify(message)});
       }
 
-      setMessageInput('');
+      setSongURL('');
     }
   };
 
@@ -75,10 +69,10 @@ const Lobby = () => {
         debug: (msg) => console.debug(msg),
         onConnect: () => {
 
-          sockJsClient.subscribe('/topic/messages.' + lobbyUUID, (message) => {
-            console.log('Received message:', message.body);
-            const msg : Message = JSON.parse(message.body);
-            dispatch(addMessage(msg));
+          sockJsClient.subscribe('/topic/songs.' + lobbyUUID, (message) => {
+            // console.log('Received message:', message.body);
+            // const msg : Message = JSON.parse(message.body);
+            // dispatch(addMessage(msg));
           });
     
           // listen to new users
@@ -115,6 +109,7 @@ const Lobby = () => {
   
   
   const qrCodeURL = "http://" + hostname + ":3000/lobby/" + lobbyUUID;
+  const embeddedUrlPreview = convertURLToEmbeddedURL(songURL);
   return (
     <div>
       <h1 className='text-3xl'>Chat App</h1>
@@ -125,44 +120,37 @@ const Lobby = () => {
       <div>Users: {userCount}</div>
       <div>
         <input
-          type='text'
-          placeholder='Input Spotify URL'
-          value={songURL}
-          onChange={(e) => { setSongURL(e.target.value) }}
-        />
-        <button onClick={() => {
-          const newSong = createNewSong(songURL);
-          dispatch(addSong(newSong))
-        }}>Submit</button>
+            type='text'
+            placeholder='Input Spotify URL'
+            value={songURL}
+            onChange={(e) => { setSongURL(e.target.value) }}
+          />
       </div>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          sendMessage();
-        }}
-      >
-        <input
-          type="text"
-          value={messageInput}
-          onChange={handleInputChange}
-          placeholder="Type your message..."
-        />
-        <button type="submit">Send</button>
-      </form>
-      <ul>
-        {messages.map((message, index) => (
-          <li key={index}>
-            <strong>{message.username}:</strong> {message.content}
-          </li>
-        ))}
-      </ul>
+      <div className="grid grid-cols-1 gap-2 my-4 md:grid-cols-3 md:gap-4">
+        <div></div>
+        { embeddedUrlPreview ? 
+            <div>
+              <SongPreview url={embeddedUrlPreview}></SongPreview>
+              <button 
+                onClick={() => {
+                  const newSong = createNewSong(songURL);
+                  if (newSong) dispatch(addSong(newSong));
+                }}
+                className='p-2 bg-gray-300 rounded-xl'
+              >Submit</button> 
+            </div>
+            : 
+              <div> </div>
+        }
+        <div></div>
+      </div>
+      <div></div>
       <div className="grid grid-cols-1 gap-2 md:grid-cols-3 md:gap-4">
         {sortedSongs.map((song, index) => (
           <div key={index} >
             <SongCard song={song}></SongCard>
           </div>
         ))}
-        
       </div>
      <button onClick={disconnectUser}>Disconnect</button>
     </div>

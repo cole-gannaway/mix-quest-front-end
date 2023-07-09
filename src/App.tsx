@@ -8,11 +8,6 @@ import {
   Routes,
   Route,
 } from "react-router-dom";
-interface Message {
-  username: string;
-  content: string;
-  timeMillis: number;
-}
 
 
 const App = () => {
