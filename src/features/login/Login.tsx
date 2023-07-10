@@ -43,10 +43,6 @@ const Login = () => {
 
   return (
     <div>
-      <div className='table mx-auto'>
-        <h2 className='text-3xl table-cell'>Mix Quest</h2>
-        <span className='table-cell align-middle text-red-500'><img src="images/dj-icon.png" alt="" className='h-6' /></span>
-      </div>
       <div className='h-8'></div>
       <h1 className="text-2xl text-black">
           Login

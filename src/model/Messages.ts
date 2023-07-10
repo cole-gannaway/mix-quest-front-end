@@ -1,7 +1,7 @@
 export interface SongRequestCountByLobbyMessage{
     lobbyUUID : string;
     songUUID : string;
-    songCount : string;
+    songCount : number;
 }
 export interface SongRequestMessage {
     songUUID: string;

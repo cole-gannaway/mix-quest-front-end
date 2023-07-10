@@ -1,4 +1,4 @@
-import { sendSongRequest } from "../../api/api";
+import { sendSongRequest, sendSongRequestDislike } from "../../api/api";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { selectLogin } from "../login/loginSlice";
 import { SongPreview } from "./SongPreview";
@@ -25,7 +25,7 @@ export function SongCard(props: SongCardProps){
                 <img src="/images/thumbs-up-line-icon.svg" style={{width:"100%"}}></img>
                 <div className="absolute top-0 right-0 h-6 w-6 bg-gray-200 border rounded-lg">{props.song.likes}</div>
             </button>
-            <button className="relative h-16 w-16 m-auto" onClick={() => sendSongRequest(hostname, {
+            <button className="relative h-16 w-16 m-auto" onClick={() => sendSongRequestDislike(hostname, {
                 songUUID: props.song.uuid,
                 lobbyUUID : login.lobbyUUID,
                 username : login.username,

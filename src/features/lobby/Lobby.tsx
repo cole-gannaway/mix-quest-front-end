@@ -3,17 +3,12 @@ import SockJS from 'sockjs-client';
 import {Client} from '@stomp/stompjs';
 import { useAppSelector, useAppDispatch } from '../../app/hooks';
 import { selectLogin } from '../login/loginSlice';
-import { Song, addSong, convertURLToEmbeddedURL, createNewSong, createNewSongUUID, selectLobby, setUserCount } from './lobbySlice';
+import { Song, addSong, bulkAddSongRequestAndDislikes, convertURLToEmbeddedURL, createNewSong, createNewSongUUID, handleSongRequestDislikeUpdate, handleSongRequestUpdate, selectLobby, setUserCount } from './lobbySlice';
 import { getSessionCount, getSongRequestDislikesByLobby, getSongRequestsByLobby, sendSongRequest } from '../../api/api';
 import QRCode from 'react-qr-code';
 import { SongCard } from './SongCard';
 import { SongPreview } from './SongPreview';
-
-interface SongRequestMessage {
-  username: string,
-  lobbyUUID: string,
-  songUUID: string,
-}
+import { SongRequestCountByLobbyMessage } from '../../model/Messages';
 
 const Lobby = () => {
   const dispatch = useAppDispatch();
@@ -70,16 +65,14 @@ const Lobby = () => {
 
           sockJsClient.subscribe('/topic/song_request.' + lobbyUUID, (message) => {
             console.log('Received message:', message.body);
-            // const msg : SongRequestMessage = JSON.parse(message.body);
-            // const newSong : Song=  createNewSongUUID(msg.songUUID);
-            // dispatch(addSong(newSong));
+            const msg : SongRequestCountByLobbyMessage[] = JSON.parse(message.body);
+            dispatch(handleSongRequestUpdate(msg))
           });
 
           sockJsClient.subscribe('/topic/song_request_dislike.' + lobbyUUID, (message) => {
             console.log('Received message:', message.body);
-            // const msg : SongRequestMessage = JSON.parse(message.body);
-            // const newSong : Song=  createNewSongUUID(msg.songUUID);
-            // dispatch(addSong(newSong));
+            const msg : SongRequestCountByLobbyMessage[] = JSON.parse(message.body);
+            dispatch(handleSongRequestDislikeUpdate(msg))
           });
     
           // listen to new users
@@ -99,9 +92,8 @@ const Lobby = () => {
           // retrieve inital data
           const retrieveSongRequestsByLobby = async() => {
             const songRequests =  await getSongRequestsByLobby(hostname, lobbyUUID)
-            if (songRequests) console.log(songRequests)
             const songRequestDislikes = await getSongRequestDislikesByLobby(hostname,lobbyUUID);
-            if (songRequestDislikes) console.log(songRequestDislikes)
+            if (songRequests && songRequestDislikes) dispatch(bulkAddSongRequestAndDislikes({songRequests: songRequests, songRequestDislikes: songRequestDislikes}))
           }
           retrieveSongRequestsByLobby();
 
@@ -127,7 +119,6 @@ const Lobby = () => {
   const embeddedUrlPreview = convertURLToEmbeddedURL(songURL);
   return (
     <div>
-      <h1 className='text-3xl'>Chat App</h1>
       <div>{hostname}</div>
       <div>
         <QRCode value={qrCodeURL} className='mx-auto h-28' />
@@ -164,7 +155,6 @@ const Lobby = () => {
           </div>
         ))}
       </div>
-     <button onClick={disconnectUser}>Disconnect</button>
     </div>
   );
 };

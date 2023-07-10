@@ -5,11 +5,9 @@ interface SongPreviewProps {
 export function SongPreview(props: SongPreviewProps){
     return <iframe 
                 src={(props.embededUrl)} 
-                className="mx-auto" 
+                className="mx-auto holds-the-iframe" 
                 style={{ width: "100%", height: 80 }} 
-                frameBorder="0"
-                allowFullScreen={true} 
                 allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-                loading="eager">
+                loading="lazy">
         </iframe>
 }

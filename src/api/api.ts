@@ -15,12 +15,12 @@ export async function getSessionCount(hostname : string, lobbyUUID: string) : Pr
     return count;
 }
 
-export async function getSongRequestsByLobby(hostname : string, lobbyUUID : string) : Promise<SongRequestCountByLobbyMessage | null> {
-    let retVal : SongRequestCountByLobbyMessage | null = null;
+export async function getSongRequestsByLobby(hostname : string, lobbyUUID : string) : Promise<SongRequestCountByLobbyMessage[] | null> {
+    let retVal : SongRequestCountByLobbyMessage[] | null = null;
     try {
         const response = await axios.get("http://" + hostname + ":8080/getSongRequestsByLobby/" + lobbyUUID);
         if (response.status === 200){
-            const result : SongRequestCountByLobbyMessage = response.data
+            const result : SongRequestCountByLobbyMessage[] = response.data
             retVal = result;
         }
     } catch (e){
@@ -29,12 +29,12 @@ export async function getSongRequestsByLobby(hostname : string, lobbyUUID : stri
     return retVal;
 }
 
-export async function getSongRequestDislikesByLobby(hostname : string, lobbyUUID : string) : Promise<SongRequestCountByLobbyMessage | null> {
-    let retVal : SongRequestCountByLobbyMessage | null = null;
+export async function getSongRequestDislikesByLobby(hostname : string, lobbyUUID : string) : Promise<SongRequestCountByLobbyMessage[] | null> {
+    let retVal : SongRequestCountByLobbyMessage[] | null = null;
     try {
         const response = await axios.get("http://" + hostname + ":8080/getSongRequestDislikesByLobby/" + lobbyUUID);
         if (response.status === 200){
-            const result : SongRequestCountByLobbyMessage = response.data
+            const result : SongRequestCountByLobbyMessage[] = response.data
             retVal = result;
         }
     } catch (e){
