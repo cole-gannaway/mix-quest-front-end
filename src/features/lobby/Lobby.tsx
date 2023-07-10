@@ -4,7 +4,7 @@ import {Client} from '@stomp/stompjs';
 import { useAppSelector, useAppDispatch } from '../../app/hooks';
 import { selectLogin } from '../login/loginSlice';
 import { Song, addSong, convertURLToEmbeddedURL, createNewSong, createNewSongUUID, selectLobby, setUserCount } from './lobbySlice';
-import { getSessionCount } from '../../api/api';
+import { getSessionCount, getSongRequestDislikesByLobby, getSongRequestsByLobby, sendSongRequest } from '../../api/api';
 import QRCode from 'react-qr-code';
 import { SongCard } from './SongCard';
 import { SongPreview } from './SongPreview';
@@ -31,25 +31,15 @@ const Lobby = () => {
 
   const hostname = window.location.hostname;
 
-  const handleSubmitSongRequest = () => {
+  async function handleSubmitSongRequest(){
     const newSong = createNewSong(songURL);
     if (newSong){
-      if (client?.connected) {
-        console.log("sending message");
-        const newSongRequestMessage : SongRequestMessage = {
-          username: username,
-          lobbyUUID: lobbyUUID,
-          songUUID: newSong.uuid
-        };
-        console.log(newSongRequestMessage)
-        client.publish({destination: "/app/songs/" + lobbyUUID, body: JSON.stringify(newSongRequestMessage)});
-      }
-      else {
-        // TODO only in OfflineMode
-        dispatch(addSong(newSong))
-      }
-      setSongURL('');
-    };
+      sendSongRequest(hostname,{
+        songUUID: newSong.uuid,
+        lobbyUUID: lobbyUUID,
+        username: username
+      });
+    }
   };
 
 
@@ -62,7 +52,7 @@ const Lobby = () => {
 
   useEffect(() => {
     if (client === null) {
-      console.log("creating client...")
+      console.log("Connecting to server...")
       // create client
       const sockJsClient = new Client({
         connectionTimeout: 600000,
@@ -76,12 +66,20 @@ const Lobby = () => {
         },
         debug: (msg) => console.debug(msg),
         onConnect: () => {
+          console.log("Connected!")
 
-          sockJsClient.subscribe('/topic/songs.' + lobbyUUID, (message) => {
+          sockJsClient.subscribe('/topic/song_request.' + lobbyUUID, (message) => {
             console.log('Received message:', message.body);
-            const msg : SongRequestMessage = JSON.parse(message.body);
-            const newSong : Song=  createNewSongUUID(msg.songUUID);
-            dispatch(addSong(newSong));
+            // const msg : SongRequestMessage = JSON.parse(message.body);
+            // const newSong : Song=  createNewSongUUID(msg.songUUID);
+            // dispatch(addSong(newSong));
+          });
+
+          sockJsClient.subscribe('/topic/song_request_dislike.' + lobbyUUID, (message) => {
+            console.log('Received message:', message.body);
+            // const msg : SongRequestMessage = JSON.parse(message.body);
+            // const newSong : Song=  createNewSongUUID(msg.songUUID);
+            // dispatch(addSong(newSong));
           });
     
           // listen to new users
@@ -91,12 +89,21 @@ const Lobby = () => {
             dispatch(setUserCount(count));
           });
 
-          // retrieve session count
+          // retrieve initial session count
           const retrieveSessionCount = async () => {
-            const count = await getSessionCount(hostname);
+            const count = await getSessionCount(hostname, lobbyUUID);
             if (count) dispatch(setUserCount(count));
           }
           retrieveSessionCount();
+
+          // retrieve inital data
+          const retrieveSongRequestsByLobby = async() => {
+            const songRequests =  await getSongRequestsByLobby(hostname, lobbyUUID)
+            if (songRequests) console.log(songRequests)
+            const songRequestDislikes = await getSongRequestDislikesByLobby(hostname,lobbyUUID);
+            if (songRequestDislikes) console.log(songRequestDislikes)
+          }
+          retrieveSongRequestsByLobby();
 
         },
         onDisconnect: () => {
@@ -115,7 +122,6 @@ const Lobby = () => {
       }
     };
   }, [client, lobbyUUID, dispatch, username, disconnectUser]);
-  
   
   const qrCodeURL = "http://" + hostname + ":3000/lobby/" + lobbyUUID;
   const embeddedUrlPreview = convertURLToEmbeddedURL(songURL);

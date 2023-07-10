@@ -13,15 +13,6 @@ export interface LobbyState {
   userCount: number;
 }
 
-
-const urls : string[] = [
-  "https://open.spotify.com/track/221qmpQeBNV87sUjQeUTVH?si=2572d82f1b494e4c",
-  "https://open.spotify.com/track/0ESJlaM8CE1jRWaNtwSNj8?si=d8b787e0869f490e",
-  "https://open.spotify.com/track/3WcC6NH9J77xPEvj1SOL7z?si=e9dc73cf342144f4",
-  "https://open.spotify.com/track/3aQem4jVGdhtg116TmJnHz?si=455dc5bf563e4024",
-  "https://open.spotify.com/track/4SZepBIPDRwPaHIjAKwRDb?si=59abc6814b714956"
-]
-
 export function parseUUIDFromURL(url: string): string | null {
   const uuid = url.split("https://open.spotify.com/track/")[1]?.split("?")[0];
 
@@ -73,15 +64,8 @@ export function createNewSongUUID(uuid: string){
   return newSong;
 }
 
-const songs : Song[] = [];
-urls.forEach((url) => {
-  const song = createNewSong(url);
-  if (song) songs.push(song);
-})
-console.log(songs);
-
 const initialState: LobbyState = {
-    songs: songs,
+    songs: [],
     userCount: 1
 };
 
