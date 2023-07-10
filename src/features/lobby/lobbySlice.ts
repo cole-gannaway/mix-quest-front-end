@@ -1,48 +1,64 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
-
-export interface Message {
-    username: string;
-    content: string;
-    timeMillis: number;
-}
+import { SongRequestCountByLobbyMessage } from '../../model/Messages';
 
 export interface Song {
   uuid: string;
-  url: string;
+  embededUrl: string;
   likes: number;
   dislikes: number;
 }
 
 export interface LobbyState {
-  messages: Message[];
   songs: Song[]
   userCount: number;
 }
 
+export function parseUUIDFromURL(url: string): string | null {
+  const uuid = url.split("https://open.spotify.com/track/")[1]?.split("?")[0];
 
-const urls : string[] = [
-  "https://open.spotify.com/track/221qmpQeBNV87sUjQeUTVH?si=2572d82f1b494e4c",
-  "https://open.spotify.com/track/0ESJlaM8CE1jRWaNtwSNj8?si=d8b787e0869f490e",
-  "https://open.spotify.com/track/3WcC6NH9J77xPEvj1SOL7z?si=e9dc73cf342144f4",
-  "https://open.spotify.com/track/3aQem4jVGdhtg116TmJnHz?si=455dc5bf563e4024",
-  "https://open.spotify.com/track/4SZepBIPDRwPaHIjAKwRDb?si=59abc6814b714956"
-]
-
-export function parseUUIDFromURL(url : string){
-  const uuid = url.split("https://open.spotify.com/track/")[1].split("?")[0];
-  return uuid;
+  const trackIdMatch = url.match("https:\/\/open\.spotify\.com\/track\/([^?]+)");
+  if (trackIdMatch && trackIdMatch[1]) {
+    return trackIdMatch[1];
+  } else {
+    return null;
+  }
 }
 
-export function convertURLToEmbeddedURL(url : string){
-  const embededUrl = "https://open.spotify.com/embed/track/" + parseUUIDFromURL(url) + "?utm_source=generator"
+export function convertURLToEmbeddedURL(url: string): string | null {
+  const uuid = parseUUIDFromURL(url);
+  if (uuid) {
+    const embededUrl = createEmbeddedURL(uuid);
+    return embededUrl;
+  } else {
+    return null;
+  }
+}
+
+function createEmbeddedURL(uuid:string){
+  const embededUrl = "https://open.spotify.com/embed/track/" + uuid;
   return embededUrl;
 }
 
 export function createNewSong(url: string){
+  const uuid = parseUUIDFromURL(url);
+  const embededUrl = convertURLToEmbeddedURL(url);
+  if (uuid !== null && embededUrl !== null){
+    const newSong : Song = {
+      uuid: uuid,
+      embededUrl: embededUrl,
+      likes: 0,
+      dislikes: 0
+    }
+    return newSong;
+  }
+  else return null;
+}
+
+export function createNewSongUUID(uuid: string){
   const newSong : Song = {
-    uuid: parseUUIDFromURL(url),
-    url: convertURLToEmbeddedURL(url),
+    uuid: uuid,
+    embededUrl: createEmbeddedURL(uuid),
     likes: 0,
     dislikes: 0
   }
@@ -50,8 +66,7 @@ export function createNewSong(url: string){
 }
 
 const initialState: LobbyState = {
-    messages: [],
-    songs: urls.map((url) => createNewSong(url)),
+    songs: [],
     userCount: 1
 };
 
@@ -59,12 +74,6 @@ export const lobbySlice = createSlice({
   name: 'lobby',
   initialState,
   reducers: {
-    addMessage: (state, action: PayloadAction<Message>) => {
-        state.messages = state.messages.concat(action.payload);
-    },
-    deleteAllMessages: (state) => {
-        state.messages = []
-    },
     setUserCount: (state, action: PayloadAction<number>) => {
       state.userCount = action.payload;
     },
@@ -76,10 +85,57 @@ export const lobbySlice = createSlice({
       const song = state.songs.find((song) => song.uuid === songUUID);
       if (song) song.likes = song.likes + 1;
     },
+    bulkAddSongRequestAndDislikes: (state, action: PayloadAction<{songRequests: SongRequestCountByLobbyMessage[], songRequestDislikes: SongRequestCountByLobbyMessage[]}>) => {
+      const songRequests = action.payload.songRequests;
+      const songRequestDislikes = action.payload.songRequestDislikes;
+      const songs : Song[] = []
+
+      songRequests.forEach((songRequest) => {
+        // create new songs
+        const songUUID = songRequest.songUUID;
+        const newSong = createNewSongUUID(songUUID);
+        // adjust number of likes
+        newSong.likes = songRequest.songCount;
+        songs.push(newSong);
+      })
+
+      songRequestDislikes.forEach((songRequestDislike) => {
+        const foundSoung = songs.find((song) => song.uuid === songRequestDislike.songUUID);
+        // adjust number of dislikes
+        if (foundSoung) foundSoung.dislikes = songRequestDislike.songCount;
+      })
+
+      state.songs = songs;
+    },
+    handleSongRequestUpdate: (state, action: PayloadAction<SongRequestCountByLobbyMessage[]>) => {
+      const songRequests = action.payload;
+      songRequests.forEach((songRequest, i) => {
+        const songUUID = songRequest.songUUID;
+        const foundSoung = state.songs.find((song) => song.uuid === songUUID);
+        if (foundSoung) foundSoung.likes = songRequest.songCount;
+        else {
+          const newSong = createNewSongUUID(songUUID);
+          newSong.likes = 1;
+          state.songs.push(newSong);
+        }
+      })
+      // trigger rerender
+      state.songs = [...state.songs]
+    },
+    handleSongRequestDislikeUpdate: (state, action: PayloadAction<SongRequestCountByLobbyMessage[]>) => {
+      const songRequestDislikes = action.payload;
+      songRequestDislikes.forEach((songRequestDislikes, i) => {
+        const songUUID = songRequestDislikes.songUUID;
+        const foundSoung = state.songs.find((song) => song.uuid === songUUID);
+        if (foundSoung) foundSoung.dislikes = songRequestDislikes.songCount;
+      })
+      // trigger rerender
+      state.songs = [...state.songs]
+    }
   }
 });
 
-export const { addMessage, deleteAllMessages, setUserCount, addSong, likeSong } = lobbySlice.actions;
+export const { setUserCount, addSong, likeSong, bulkAddSongRequestAndDislikes, handleSongRequestUpdate, handleSongRequestDislikeUpdate } = lobbySlice.actions;
 
 export const selectLobby = (state: RootState) => state.lobby;
 

@@ -8,16 +8,15 @@ import {
   Routes,
   Route,
 } from "react-router-dom";
-interface Message {
-  username: string;
-  content: string;
-  timeMillis: number;
-}
 
 
 const App = () => {
   return (
     <div id='appContainer'>
+      <div className='table mx-auto'>
+        <h2 className='text-3xl table-cell'>Mix Quest</h2>
+        <span className='table-cell align-middle text-red-500'><img src="/images/dj-icon.png" alt="" className='h-6' /></span>
+      </div>
       <AuthProvider>
         <Routes>
           <Route path='/login' element={<Login />} />

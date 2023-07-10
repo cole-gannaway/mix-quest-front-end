@@ -3,13 +3,12 @@ import SockJS from 'sockjs-client';
 import {Client} from '@stomp/stompjs';
 import { useAppSelector, useAppDispatch } from '../../app/hooks';
 import { selectLogin } from '../login/loginSlice';
-import { Message, addMessage, addSong, createNewSong, selectLobby, setUserCount } from './lobbySlice';
-import { getSessionCount } from '../../api/api';
+import { Song, addSong, bulkAddSongRequestAndDislikes, convertURLToEmbeddedURL, createNewSong, createNewSongUUID, handleSongRequestDislikeUpdate, handleSongRequestUpdate, selectLobby, setUserCount } from './lobbySlice';
+import { getSessionCount, getSongRequestDislikesByLobby, getSongRequestsByLobby, sendSongRequest } from '../../api/api';
 import QRCode from 'react-qr-code';
 import { SongCard } from './SongCard';
-
-
-
+import { SongPreview } from './SongPreview';
+import { SongRequestCountByLobbyMessage } from '../../model/Messages';
 
 const Lobby = () => {
   const dispatch = useAppDispatch();
@@ -18,35 +17,23 @@ const Lobby = () => {
   const lobbyUUID = login.lobbyUUID;
 
   const lobby = useAppSelector(selectLobby);
-  const messages = lobby.messages;
   const userCount = lobby.userCount;
   const songs = lobby.songs;
   const sortedSongs = [...songs].sort((a,b) => b.likes - a.likes);
 
   const [client, setClient] = useState<Client | null>(null);
-  const [messageInput, setMessageInput] = useState('');
   const [songURL, setSongURL] = useState('');
 
   const hostname = window.location.hostname;
 
-  const handleInputChange = (event : any) => {
-    setMessageInput(event.target.value);
-  };
-
-
-  const sendMessage = () => {
-    if (messageInput.trim() !== '') {
-      const message : Message = {
-        content: messageInput,
-        username: username,
-        timeMillis: Date.now()
-      };
-
-      if (client) {
-        client.publish({destination: "/app/messages/" + lobbyUUID, body: JSON.stringify(message)});
-      }
-
-      setMessageInput('');
+  async function handleSubmitSongRequest(){
+    const newSong = createNewSong(songURL);
+    if (newSong){
+      sendSongRequest(hostname,{
+        songUUID: newSong.uuid,
+        lobbyUUID: lobbyUUID,
+        username: username
+      });
     }
   };
 
@@ -60,7 +47,7 @@ const Lobby = () => {
 
   useEffect(() => {
     if (client === null) {
-      console.log("creating client...")
+      console.log("Connecting to server...")
       // create client
       const sockJsClient = new Client({
         connectionTimeout: 600000,
@@ -74,11 +61,18 @@ const Lobby = () => {
         },
         debug: (msg) => console.debug(msg),
         onConnect: () => {
+          console.log("Connected!")
 
-          sockJsClient.subscribe('/topic/messages.' + lobbyUUID, (message) => {
+          sockJsClient.subscribe('/topic/song_request.' + lobbyUUID, (message) => {
             console.log('Received message:', message.body);
-            const msg : Message = JSON.parse(message.body);
-            dispatch(addMessage(msg));
+            const msg : SongRequestCountByLobbyMessage[] = JSON.parse(message.body);
+            dispatch(handleSongRequestUpdate(msg))
+          });
+
+          sockJsClient.subscribe('/topic/song_request_dislike.' + lobbyUUID, (message) => {
+            console.log('Received message:', message.body);
+            const msg : SongRequestCountByLobbyMessage[] = JSON.parse(message.body);
+            dispatch(handleSongRequestDislikeUpdate(msg))
           });
     
           // listen to new users
@@ -88,12 +82,20 @@ const Lobby = () => {
             dispatch(setUserCount(count));
           });
 
-          // retrieve session count
+          // retrieve initial session count
           const retrieveSessionCount = async () => {
-            const count = await getSessionCount(hostname);
+            const count = await getSessionCount(hostname, lobbyUUID);
             if (count) dispatch(setUserCount(count));
           }
           retrieveSessionCount();
+
+          // retrieve inital data
+          const retrieveSongRequestsByLobby = async() => {
+            const songRequests =  await getSongRequestsByLobby(hostname, lobbyUUID)
+            const songRequestDislikes = await getSongRequestDislikesByLobby(hostname,lobbyUUID);
+            if (songRequests && songRequestDislikes) dispatch(bulkAddSongRequestAndDislikes({songRequests: songRequests, songRequestDislikes: songRequestDislikes}))
+          }
+          retrieveSongRequestsByLobby();
 
         },
         onDisconnect: () => {
@@ -113,11 +115,10 @@ const Lobby = () => {
     };
   }, [client, lobbyUUID, dispatch, username, disconnectUser]);
   
-  
   const qrCodeURL = "http://" + hostname + ":3000/lobby/" + lobbyUUID;
+  const embeddedUrlPreview = convertURLToEmbeddedURL(songURL);
   return (
     <div>
-      <h1 className='text-3xl'>Chat App</h1>
       <div>{hostname}</div>
       <div>
         <QRCode value={qrCodeURL} className='mx-auto h-28' />
@@ -125,46 +126,35 @@ const Lobby = () => {
       <div>Users: {userCount}</div>
       <div>
         <input
-          type='text'
-          placeholder='Input Spotify URL'
-          value={songURL}
-          onChange={(e) => { setSongURL(e.target.value) }}
-        />
-        <button onClick={() => {
-          const newSong = createNewSong(songURL);
-          dispatch(addSong(newSong))
-        }}>Submit</button>
+            type='text'
+            placeholder='Input Spotify URL'
+            value={songURL}
+            onChange={(e) => { setSongURL(e.target.value) }}
+          />
       </div>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          sendMessage();
-        }}
-      >
-        <input
-          type="text"
-          value={messageInput}
-          onChange={handleInputChange}
-          placeholder="Type your message..."
-        />
-        <button type="submit">Send</button>
-      </form>
-      <ul>
-        {messages.map((message, index) => (
-          <li key={index}>
-            <strong>{message.username}:</strong> {message.content}
-          </li>
-        ))}
-      </ul>
+      <div className="grid grid-cols-1 gap-2 my-4 md:grid-cols-3 md:gap-4">
+        <div></div>
+        { embeddedUrlPreview ? 
+            <div>
+              <SongPreview embededUrl={embeddedUrlPreview}></SongPreview>
+              <button 
+                onClick={handleSubmitSongRequest}
+                className='p-2 bg-gray-300 rounded-xl'
+              >Submit</button> 
+            </div>
+            : 
+              <div> </div>
+        }
+        <div></div>
+      </div>
+      <div></div>
       <div className="grid grid-cols-1 gap-2 md:grid-cols-3 md:gap-4">
         {sortedSongs.map((song, index) => (
           <div key={index} >
             <SongCard song={song}></SongCard>
           </div>
         ))}
-        
       </div>
-     <button onClick={disconnectUser}>Disconnect</button>
     </div>
   );
 };
