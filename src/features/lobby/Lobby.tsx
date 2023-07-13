@@ -35,6 +35,7 @@ const Lobby = () => {
         username: username,
         isLike: true
       });
+      setSongURL("")
     }
   };
 
@@ -121,7 +122,7 @@ const Lobby = () => {
             type='text'
             placeholder='Paste Spotify URL'
             value={songURL}
-            className="border border-black rounded"
+            className="bg-black border border-white rounded"
             onChange={(e) => { setSongURL(e.target.value) }}
           />
       </div>
@@ -134,7 +135,7 @@ const Lobby = () => {
               </div>
               <button 
                 onClick={handleSubmitSongRequest}
-                className='p-2 bg-gray-300 rounded-xl'
+                className="p-2 rounded-xl text-black bg-green-400 hover:bg-black hover:text-green-400"
               >Submit</button> 
             </div>
             : 
@@ -142,7 +143,10 @@ const Lobby = () => {
         }
         <div></div>
       </div>
-      <div className="grid grid-cols-1 gap-2 md:grid-cols-3 md:gap-4">
+      <div className="my-4">
+        <span className="text-2xl bold italic p-2 bg-black text-yellow-400 rounded-xl hover:text-black hover:bg-yellow-400">Top 25</span>
+      </div>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-4">
         {sortedSongs.map((song, index) => (
           <div key={index} >
             <SongCard song={song} rank={index + 1}></SongCard>
@@ -152,9 +156,9 @@ const Lobby = () => {
       <div className="grid grid-cols-1 gap-2 md:grid-cols-3 md:gap-4">
         <div></div>
         <div>
-          <button className='p-2 bg-gray-300 rounded-xl'>Back</button>
+          <button className='p-2 bg-black text-yellow-400 border border-white rounded-xl'>Back</button>
           <div className='w-4 inline-block'></div>
-          <button className='p-2 bg-gray-300 rounded-xl'>Next</button>
+          <button className='p-2 bg-black text-yellow-400 border border-white rounded-xl'>Next</button>
         </div>
         <div></div>
       </div>

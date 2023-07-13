@@ -44,7 +44,7 @@ const Login = () => {
   return (
     <div>
       <div className='h-8'></div>
-      <h1 className="text-2xl text-black">
+      <h1 className="text-2xl">
           Login
       </h1>
       <form onSubmit={handleLogin}>
@@ -55,7 +55,7 @@ const Login = () => {
             id="username"
             value={username}
             onChange={(e) => dispatch(setUsername((e.target.value)))}
-            className="p-2 m-2 border border-black rounded border-radius-2"
+            className="p-2 m-2 bg-black border border-white rounded-lg"
           />
         </div>
         <div>
@@ -65,10 +65,10 @@ const Login = () => {
             id="lobbyId"
             value={lobbyUUID}
             onChange={(e) => dispatch(setLobbyUUID(e.target.value))}
-            className="p-2 m-2 border border-black rounded border-radius-2"
+            className="p-2 m-2 bg-black border border-white rounded-lg"
           />
         </div>
-        <button type="submit" className='p-4 border border-black rounded border-radius-2'>Login</button>
+        <button type="submit" className='p-4 border border-white rounded-xl border-radius-2 hover:bg-white hover:text-black'>Login</button>
       </form>
     </div>
   );
