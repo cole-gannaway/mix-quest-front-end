@@ -119,8 +119,9 @@ const Lobby = () => {
       <div>
         <input
             type='text'
-            placeholder='Input Spotify URL'
+            placeholder='Paste Spotify URL'
             value={songURL}
+            className="border border-black rounded"
             onChange={(e) => { setSongURL(e.target.value) }}
           />
       </div>
@@ -128,7 +129,9 @@ const Lobby = () => {
         <div></div>
         { embeddedUrlPreview ? 
             <div>
-              <SongPreview embededUrl={embeddedUrlPreview}></SongPreview>
+              <div className="h-40">
+                <SongPreview embededUrl={embeddedUrlPreview}></SongPreview>
+              </div>
               <button 
                 onClick={handleSubmitSongRequest}
                 className='p-2 bg-gray-300 rounded-xl'
@@ -139,7 +142,6 @@ const Lobby = () => {
         }
         <div></div>
       </div>
-      <div></div>
       <div className="grid grid-cols-1 gap-2 md:grid-cols-3 md:gap-4">
         {sortedSongs.map((song, index) => (
           <div key={index} >

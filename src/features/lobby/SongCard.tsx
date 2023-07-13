@@ -13,9 +13,9 @@ export function SongCard(props: SongCardProps){
     const hostname = window.location.hostname;
     const login = useAppSelector(selectLogin);
 
-    return <div className="border border-black rounded-lg">
-        <div>
-            <div className="absolute bg-gray-200 text-yellow-500 rounded-lg w-6">{props.rank}</div>
+    return <div className="border border-black rounded-xl">
+        <div className="relative h-40">
+            <div className="absolute bg-black text-yellow-500 text-xl rounded-2xl w-12 -top-1 -left-1">{"#" + props.rank}</div>
             <SongPreview embededUrl={props.song.embededUrl}></SongPreview>
         </div>
         <div className="grid grid-cols-2 text-center">
