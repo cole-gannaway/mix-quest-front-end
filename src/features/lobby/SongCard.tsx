@@ -21,6 +21,7 @@ export function SongCard(props: SongCardProps){
                 songUUID: props.song.uuid,
                 lobbyUUID : login.lobbyUUID,
                 username : login.username,
+                isLike: true
             })}>
                 <img src="/images/thumbs-up-line-icon.svg" style={{width:"100%"}}></img>
                 <div className="absolute top-0 right-0 h-6 w-6 bg-gray-200 border rounded-lg">{props.song.likes}</div>
@@ -29,6 +30,7 @@ export function SongCard(props: SongCardProps){
                 songUUID: props.song.uuid,
                 lobbyUUID : login.lobbyUUID,
                 username : login.username,
+                isLike: false
             })}>
                 <img src="/images/thumbs-down-line-icon.svg" style={{width:"100%"}}></img>
                 <div className="absolute top-0 right-0 h-6 w-6 bg-gray-200 border rounded-lg">{props.song.dislikes}</div>
