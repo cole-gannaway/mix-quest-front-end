@@ -143,9 +143,18 @@ const Lobby = () => {
       <div className="grid grid-cols-1 gap-2 md:grid-cols-3 md:gap-4">
         {sortedSongs.map((song, index) => (
           <div key={index} >
-            <SongCard song={song}></SongCard>
+            <SongCard song={song} rank={index + 1}></SongCard>
           </div>
         ))}
+      </div>
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-3 md:gap-4">
+        <div></div>
+        <div>
+          <button className='p-2 bg-gray-300 rounded-xl'>Back</button>
+          <div className='w-4 inline-block'></div>
+          <button className='p-2 bg-gray-300 rounded-xl'>Next</button>
+        </div>
+        <div></div>
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import { Song, likeSong } from "./lobbySlice"
 
 interface SongCardProps {
     song:Song,
+    rank? : number
 }
 export function SongCard(props: SongCardProps){
     const dispatch = useAppDispatch();
@@ -14,6 +15,7 @@ export function SongCard(props: SongCardProps){
 
     return <div className="border border-black rounded-lg">
         <div>
+            <div className="absolute bg-gray-200 text-yellow-500 rounded-lg w-6">{props.rank}</div>
             <SongPreview embededUrl={props.song.embededUrl}></SongPreview>
         </div>
         <div className="grid grid-cols-2 text-center">
