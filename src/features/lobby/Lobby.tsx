@@ -3,12 +3,12 @@ import SockJS from 'sockjs-client';
 import {Client} from '@stomp/stompjs';
 import { useAppSelector, useAppDispatch } from '../../app/hooks';
 import { selectLogin } from '../login/loginSlice';
-import { Song, addSong, bulkAddSongRequestAndDislikes, convertURLToEmbeddedURL, createNewSong, createNewSongUUID, handleSongRequestDislikeUpdate, handleSongRequestUpdate, selectLobby, setUserCount } from './lobbySlice';
+import { Song, addSong, bulkAddSongRequestAndDislikes, convertURLToEmbeddedURL, createNewSong, createNewSongUUID, handleSongRequestUpdate, selectLobby, setUserCount } from './lobbySlice';
 import { getSessionCount, getSongRequestDislikesByLobby, getSongRequestsByLobby, sendSongRequest } from '../../api/api';
 import QRCode from 'react-qr-code';
 import { SongCard } from './SongCard';
 import { SongPreview } from './SongPreview';
-import { SongRequestCountByLobbyMessage } from '../../model/Messages';
+import { SongRequestCombinedMessage } from '../../model/Messages';
 
 const Lobby = () => {
   const dispatch = useAppDispatch();
@@ -32,8 +32,10 @@ const Lobby = () => {
       sendSongRequest(hostname,{
         songUUID: newSong.uuid,
         lobbyUUID: lobbyUUID,
-        username: username
+        username: username,
+        isLike: true
       });
+      setSongURL("")
     }
   };
 
@@ -63,21 +65,13 @@ const Lobby = () => {
         onConnect: () => {
           console.log("Connected!")
 
-          sockJsClient.subscribe('/topic/song_request.' + lobbyUUID, (message) => {
-            console.log('Received message:', message.body);
-            const msg : SongRequestCountByLobbyMessage[] = JSON.parse(message.body);
+          sockJsClient.subscribe('/topic/song_request_update.' + lobbyUUID, (message) => {
+            const msg : SongRequestCombinedMessage[] = JSON.parse(message.body);
             dispatch(handleSongRequestUpdate(msg))
-          });
-
-          sockJsClient.subscribe('/topic/song_request_dislike.' + lobbyUUID, (message) => {
-            console.log('Received message:', message.body);
-            const msg : SongRequestCountByLobbyMessage[] = JSON.parse(message.body);
-            dispatch(handleSongRequestDislikeUpdate(msg))
           });
     
           // listen to new users
           sockJsClient.subscribe('/topic/users.' + lobbyUUID, (message) => {
-            console.log('Received message on /topic/users:', message.body);
             const count = parseInt(message.body);
             dispatch(setUserCount(count));
           });
@@ -92,8 +86,7 @@ const Lobby = () => {
           // retrieve inital data
           const retrieveSongRequestsByLobby = async() => {
             const songRequests =  await getSongRequestsByLobby(hostname, lobbyUUID)
-            const songRequestDislikes = await getSongRequestDislikesByLobby(hostname,lobbyUUID);
-            if (songRequests && songRequestDislikes) dispatch(bulkAddSongRequestAndDislikes({songRequests: songRequests, songRequestDislikes: songRequestDislikes}))
+            if (songRequests) dispatch(bulkAddSongRequestAndDislikes(songRequests))
           }
           retrieveSongRequestsByLobby();
 
@@ -127,8 +120,9 @@ const Lobby = () => {
       <div>
         <input
             type='text'
-            placeholder='Input Spotify URL'
+            placeholder='Paste Spotify URL'
             value={songURL}
+            className="bg-black border border-white rounded"
             onChange={(e) => { setSongURL(e.target.value) }}
           />
       </div>
@@ -136,10 +130,12 @@ const Lobby = () => {
         <div></div>
         { embeddedUrlPreview ? 
             <div>
-              <SongPreview embededUrl={embeddedUrlPreview}></SongPreview>
+              <div className="h-40">
+                <SongPreview embededUrl={embeddedUrlPreview}></SongPreview>
+              </div>
               <button 
                 onClick={handleSubmitSongRequest}
-                className='p-2 bg-gray-300 rounded-xl'
+                className="p-2 rounded-xl text-black bg-green-400 hover:bg-black hover:text-green-400"
               >Submit</button> 
             </div>
             : 
@@ -147,13 +143,24 @@ const Lobby = () => {
         }
         <div></div>
       </div>
-      <div></div>
-      <div className="grid grid-cols-1 gap-2 md:grid-cols-3 md:gap-4">
+      <div className="my-4">
+        <span className="text-2xl bold italic p-2 bg-black text-yellow-400 rounded-xl hover:text-black hover:bg-yellow-400">Top 25</span>
+      </div>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-4">
         {sortedSongs.map((song, index) => (
           <div key={index} >
-            <SongCard song={song}></SongCard>
+            <SongCard song={song} rank={index + 1}></SongCard>
           </div>
         ))}
+      </div>
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-3 md:gap-4">
+        <div></div>
+        <div>
+          <button className='p-2 bg-black text-yellow-400 border border-white rounded-xl'>Back</button>
+          <div className='w-4 inline-block'></div>
+          <button className='p-2 bg-black text-yellow-400 border border-white rounded-xl'>Next</button>
+        </div>
+        <div></div>
       </div>
     </div>
   );

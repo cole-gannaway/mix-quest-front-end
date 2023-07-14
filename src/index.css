@@ -9,6 +9,36 @@
     text-align: center;
 }
 
-.holds-the-iframe {
-    background:url(images/loader.gif) center center no-repeat;
+/* Style the video: 100% width and height to cover the entire window */
+#myVideo {
+    position: fixed;
+    background: black;
+    filter:opacity(60%);
+    top: 0;
+    left: 0;
+    min-width: 100%;
+    min-height: 100%;
+    z-index: -2;
+}
+
+#myLayover {
+    position: fixed;
+    background: black;
+    filter:opacity(80%);
+    top: 0;
+    left: 0;
+    min-width: 100%;
+    min-height: 100%;
+    z-index: -1;
+}
+
+body {
+    background: black;
+}
+
+svg{
+    fill: #c1c1c1;
+}
+#DiskJockey{
+    fill: rgb(234, 179, 8);
 }

@@ -13,6 +13,11 @@ const root = createRoot(container);
 root.render(
     <Provider store={store}>
       <BrowserRouter>
+        <video playsInline={true} autoPlay={true} loop={true} muted={true} className="fixed -z-10 w-auto min-w-full min-h-full max-w-none">
+          <source src="videos/yellow-flame.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+        <div id='myLayover'></div>
         <App />
       </BrowserRouter>
     </Provider>
