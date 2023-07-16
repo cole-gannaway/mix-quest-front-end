@@ -22,19 +22,29 @@ const Lobby = () => {
   const sortedSongs = [...songs].sort((a,b) => b.likes - a.likes);
 
   const [client, setClient] = useState<Client | null>(null);
-  const [songURL, setSongURL] = useState('');
+  const [songURL, setSongURL] = useState('https://open.spotify.com/track/0hCB0YR03f6AmQaHbwWDe8?si=9aca2f942ae64f27');
 
   const hostname = window.location.hostname;
 
   async function handleSubmitSongRequest(){
     const newSong = createNewSong(songURL);
     if (newSong){
-      sendSongRequest(hostname,{
-        songUUID: newSong.uuid,
-        lobbyUUID: lobbyUUID,
-        username: username,
-        isLike: true
-      });
+      if (!login.isOfflineMode){
+        sendSongRequest(hostname,{
+          songUUID: newSong.uuid,
+          lobbyUUID: lobbyUUID,
+          username: username,
+          isLike: true
+        });
+      } else {
+         // offline mode
+         dispatch(handleSongRequestUpdate([{
+          lobbyUUID: login.lobbyUUID,
+          songUUID : newSong.uuid,
+          likeCount : newSong.likes,
+          dislikeCount : newSong.dislikes
+        }]))
+      }
       setSongURL("")
     }
   };
@@ -48,7 +58,7 @@ const Lobby = () => {
   }, [client])
 
   useEffect(() => {
-    if (client === null) {
+    if (client === null && !login.isOfflineMode) {
       console.log("Connecting to server...")
       // create client
       const sockJsClient = new Client({
@@ -106,7 +116,7 @@ const Lobby = () => {
         disconnectUser()
       }
     };
-  }, [client, lobbyUUID, dispatch, username, hostname, disconnectUser]);
+  }, [client, lobbyUUID, dispatch, username, hostname, login.isOfflineMode, disconnectUser]);
   
   const qrCodeURL = "http://" + hostname + ":3000/lobby/" + lobbyUUID;
   const embeddedUrlPreview = convertURLToEmbeddedURL(songURL);
@@ -144,7 +154,7 @@ const Lobby = () => {
         <div></div>
       </div>
       <div className="my-4">
-        <span className="text-2xl bold italic p-2 bg-black text-yellow-400 rounded-xl hover:text-black hover:bg-yellow-400">Top 25</span>
+        <span className="text-2xl bold italic p-2 bg-black text-yellow-400 rounded-xl border border-white hover:text-black hover:bg-yellow-400">Top 25</span>
       </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-4">
         {sortedSongs.map((song, index) => (

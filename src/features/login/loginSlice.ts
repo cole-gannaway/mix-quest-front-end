@@ -10,7 +10,7 @@ export interface LoginState {
 const initialState: LoginState = {
   username: "",
   lobbyUUID: "",
-  isOfflineMode: false
+  isOfflineMode: true
 };
 
 export const loginSlice = createSlice({
@@ -22,6 +22,9 @@ export const loginSlice = createSlice({
     },
     setLobbyUUID: (state, action: PayloadAction<string>) => {
         state.lobbyUUID = action.payload;
+    },
+    setIsOffline: (state, action: PayloadAction<boolean>) => {
+      state.isOfflineMode = action.payload;
     },
   }
 });

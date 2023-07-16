@@ -1,6 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import { useAppSelector, useAppDispatch } from './app/hooks';
-import { selectLogin } from './features/login/loginSlice';
+import React from 'react';
 import Lobby from './features/lobby/Lobby';
 import Login from './features/login/Login';
 import { AuthProvider, RequireAuth } from './Auth';
@@ -15,7 +13,7 @@ const App = () => {
       <div className='mx-auto table'>
         <h2 className='text-3xl table-cell'>Mix Quest</h2>
         <div className='table-cell h-6 w-6'>
-          <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 48 48" viewBox="0 0 48 48" id="DiskJockey">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" id="DiskJockey">
               <path d="M26.125,6.125c-0.004-0.001-0.008,0.001-0.012,0c-0.004-0.001-0.006-0.003-0.01-0.004C25.71,6.04,25.35,6,25,6h-2
                   c-2.757,0-5,2.243-5,5v1v3c0,2.757,2.243,5,5,5h2c2.757,0,5-2.243,5-5v-3v-1C30,8.655,28.406,6.651,26.125,6.125z">
               </path>

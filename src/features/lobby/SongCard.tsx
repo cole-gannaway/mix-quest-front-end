@@ -2,7 +2,7 @@ import { sendSongRequest, sendSongRequestDislike } from "../../api/api";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { selectLogin } from "../login/loginSlice";
 import { SongPreview } from "./SongPreview";
-import { Song, likeSong } from "./lobbySlice"
+import { Song, handleSongRequestUpdate } from "./lobbySlice"
 
 interface SongCardProps {
     song:Song,
@@ -19,12 +19,24 @@ export function SongCard(props: SongCardProps){
             <SongPreview embededUrl={props.song.embededUrl}></SongPreview>
         </div>
         <div className="grid grid-cols-2 text-center">
-            <button className="relative h-16 w-16 m-auto" onClick={() => sendSongRequest(hostname, {
-                songUUID: props.song.uuid,
-                lobbyUUID : login.lobbyUUID,
-                username : login.username,
-                isLike: true
-            })}>
+            <button className="relative h-16 w-16 m-auto" onClick={() => {
+            if (!login.isOfflineMode){
+                sendSongRequest(hostname, {
+                    songUUID: props.song.uuid,
+                    lobbyUUID : login.lobbyUUID,
+                    username : login.username,
+                    isLike: true
+                })
+            } else {
+                // offline mode
+                dispatch(handleSongRequestUpdate([{
+                    lobbyUUID: login.lobbyUUID,
+                    songUUID : props.song.uuid,
+                    likeCount : props.song.likes + 1,
+                    dislikeCount : props.song.dislikes
+                }]))
+            }
+            }}>
                 <svg version="1.1" id="thumbs-up-icon-svg" xmlns="http://www.w3.org/2000/svg"
                     xmlnsXlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 122.88 104.19"
                 >
@@ -35,12 +47,24 @@ export function SongCard(props: SongCardProps){
                 </svg>
                 <div className="absolute top-0 right-0 h-6 w-6 bg-black border rounded-lg text-yellow-400">{props.song.likes}</div>
             </button>
-            <button className="relative h-16 w-16 m-auto" onClick={() => sendSongRequestDislike(hostname, {
-                songUUID: props.song.uuid,
-                lobbyUUID : login.lobbyUUID,
-                username : login.username,
-                isLike: false
-            })}>
+            <button className="relative h-16 w-16 m-auto" onClick={() => {
+                if (!login.isOfflineMode){
+                    sendSongRequestDislike(hostname, {
+                        songUUID: props.song.uuid,
+                        lobbyUUID : login.lobbyUUID,
+                        username : login.username,
+                        isLike: false
+                    })
+                } else {
+                    // offline mode
+                    dispatch(handleSongRequestUpdate([{
+                        lobbyUUID: login.lobbyUUID,
+                        songUUID : props.song.uuid,
+                        likeCount : props.song.likes,
+                        dislikeCount : props.song.dislikes + 1
+                    }]))
+                }
+            }}>
                 <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"
                     xmlnsXlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 122.88 104.19"
                 >

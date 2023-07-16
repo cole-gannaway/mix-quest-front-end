@@ -15,9 +15,7 @@ export interface LobbyState {
 }
 
 export function parseUUIDFromURL(url: string): string | null {
-  const uuid = url.split("https://open.spotify.com/track/")[1]?.split("?")[0];
-
-  const trackIdMatch = url.match("https:\/\/open\.spotify\.com\/track\/([^?]+)");
+  const trackIdMatch = url.match("https://open.spotify.com/track/([^?]+)");
   if (trackIdMatch && trackIdMatch[1]) {
     return trackIdMatch[1];
   } else {
@@ -66,7 +64,12 @@ export function createNewSongUUID(uuid: string){
 }
 
 const initialState: LobbyState = {
-    songs: [],
+    songs: [{
+      uuid: "5EWPGh7jbTNO2wakv8LjUI",
+      embededUrl: "https://open.spotify.com/embed/track/5EWPGh7jbTNO2wakv8LjUI",
+      likes: 1,
+      dislikes: 0
+    }],
     userCount: 1
 };
 
