@@ -3,8 +3,8 @@ import SockJS from 'sockjs-client';
 import {Client} from '@stomp/stompjs';
 import { useAppSelector, useAppDispatch } from '../../app/hooks';
 import { selectLogin } from '../login/loginSlice';
-import { Song, addSong, bulkAddSongRequestAndDislikes, convertURLToEmbeddedURL, createNewSong, createNewSongUUID, handleSongRequestUpdate, selectLobby, setUserCount } from './lobbySlice';
-import { getSessionCount, getSongRequestDislikesByLobby, getSongRequestsByLobby, sendSongRequest } from '../../api/api';
+import { bulkAddSongRequestAndDislikes, convertURLToEmbeddedURL, createNewSong, handleSongRequestUpdate, selectLobby, setUserCount } from './lobbySlice';
+import { getSessionCount, getSongRequestsByLobby, sendSongRequest } from '../../api/api';
 import QRCode from 'react-qr-code';
 import { SongCard } from './SongCard';
 import { SongPreview } from './SongPreview';
@@ -106,7 +106,7 @@ const Lobby = () => {
         disconnectUser()
       }
     };
-  }, [client, lobbyUUID, dispatch, username, disconnectUser]);
+  }, [client, lobbyUUID, dispatch, username, hostname, disconnectUser]);
   
   const qrCodeURL = "http://" + hostname + ":3000/lobby/" + lobbyUUID;
   const embeddedUrlPreview = convertURLToEmbeddedURL(songURL);

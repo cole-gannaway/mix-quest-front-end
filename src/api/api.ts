@@ -29,20 +29,6 @@ export async function getSongRequestsByLobby(hostname : string, lobbyUUID : stri
     return retVal;
 }
 
-export async function getSongRequestDislikesByLobby(hostname : string, lobbyUUID : string) : Promise<SongRequestCombinedMessage[] | null> {
-    let retVal : SongRequestCombinedMessage[] | null = null;
-    try {
-        const response = await axios.get("http://" + hostname + ":8080/getSongRequestDislikesByLobby/" + lobbyUUID);
-        if (response.status === 200){
-            const result : SongRequestCombinedMessage[] = response.data
-            retVal = result;
-        }
-    } catch (e){
-        console.error(e);
-    }
-    return retVal;
-}
-
 export async function sendSongRequest(hostname : string, message : SongRequestMessage) : Promise<Boolean | null> {
     let retVal = null;
     try {
