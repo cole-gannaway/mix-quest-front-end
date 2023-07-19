@@ -135,6 +135,12 @@ const Lobby = () => {
             className="bg-black border border-white rounded"
             onChange={(e) => { setSongURL(e.target.value) }}
           />
+          {
+            songURL.length === 0 ? 
+            <a href='spotify://'>
+              <img src="/images/spotify-logo.png" className='inline-block mx-2 h-6 w-6' alt='spotify logo'></img>
+            </a> : 
+            <span></span>}
       </div>
       <div className="grid grid-cols-1 gap-2 my-4 md:grid-cols-3 md:gap-4">
         <div></div>
@@ -156,7 +162,7 @@ const Lobby = () => {
       <div className="my-4">
         <span className="text-2xl bold italic p-2 bg-black text-yellow-400 rounded-xl border border-white hover:text-black hover:bg-yellow-400">Top 25</span>
       </div>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-4">
+      <div className="grid grid-cols-1 gap-4 my-4 md:grid-cols-3 md:gap-4">
         {sortedSongs.map((song, index) => (
           <div key={index} >
             <SongCard song={song} rank={index + 1}></SongCard>
